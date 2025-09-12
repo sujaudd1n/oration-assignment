@@ -5,14 +5,18 @@ import { trpc } from "@/utils/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { PanelLeft } from "lucide-react";
 
 export default function Layout({ children }) {
   const [newChatTitle, setNewChatTitle] = useState("");
   const utils = trpc.useUtils();
   const router = useRouter();
+  const params = useParams();
+  const sessionId = params?.id as string;
 
   const { data: sessions, isLoading } = trpc.chat.listSessions.useQuery();
   const createSession = trpc.chat.createSession.useMutation({
@@ -43,28 +47,36 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="h-[100dvh] p-6 mx-auto">
+    <div className="h-[100dvh] mx-auto">
       <div className="flex h-[100%]">
-        <aside className="max-w-[400px]">
-          <h1 className="text-3xl font-bold">Career Counseling Chats</h1>
-          <h2>Your Chat Sessions</h2>
+        <aside className="w-[300px] p-5 bg-secondary">
+          <div className="h-[100px]">
+            <div className="flex justify-between">
+              <h1 className="text-xl font-bold">Career Counseling</h1>
+              <Button size="icon">
+                <PanelLeft />
+              </Button>
+            </div>
+            <Button className="w-full my-5" onClick={() => router.push("/chat")}>
+              New Chat
+            </Button>
+          </div>
           {sessions?.length === 0 ? (
             <p className="text-muted-foreground">
               No chat sessions yet. Start a new one!
             </p>
           ) : (
-            <div className="grid gap-4">
+            <div className="flex flex-col gap-2 overflow-auto h-[calc(100dvh-100px-40px)]">
               {sessions?.map((session) => (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className={`${session.id === sessionId && 'bg-[#333333]'} flex items-center justify-between px-2 pr-0 rounded-lg hover:bg-[#333333]`}
                 >
                   <Link
                     href={`/chat/${session.id}`}
                     className="flex items-center gap-3 flex-1"
                   >
-                    <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                    <span className="font-medium">{session.title}</span>
+                    <span className="text-sm font-medium">{session.title}</span>
                   </Link>
                   <Button
                     variant="ghost"
@@ -79,27 +91,26 @@ export default function Layout({ children }) {
             </div>
           )}
         </aside>
-        <div className="grid gap-6 grow self-end">
+
+        <div className="p-5 grow max-w-[700px] mx-auto self-end">
           <div>{children}</div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Start New Chat</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <Input
-                  placeholder="Enter chat topic..."
-                  value={newChatTitle}
-                  onChange={(e) => setNewChatTitle(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleCreateChat()}
-                />
-                <Button onClick={handleCreateChat} disabled={createSession.isPending}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Chat
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex gap-2">
+            <Input
+              className="h-[50px] relative"
+              placeholder={sessionId ? "Message... " : "Start a new chat"}
+              value={newChatTitle}
+              onChange={(e) => setNewChatTitle(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleCreateChat()}
+            />
+            <Button
+              // size="icon"
+              onClick={handleCreateChat}
+              disabled={createSession.isPending}
+              className="w-[50px] h-[50px]"
+            >
+              <Send size={64} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
