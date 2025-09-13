@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { trpc } from "@/utils/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -10,13 +10,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { PanelLeft } from "lucide-react";
+import { toast } from "sonner";
+import { useChat } from "../ChatContext";
 
 export default function Layout({ children }) {
   const [newChatTitle, setNewChatTitle] = useState("");
+  const {sendMessage} = useChat()
   const utils = trpc.useUtils();
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.id as string;
+
+  const { message, setMessage } = useChat();
+  console.log(sendMessage);
 
   const { data: sessions, isLoading } = trpc.chat.listSessions.useQuery();
   const createSession = trpc.chat.createSession.useMutation({
@@ -24,17 +30,35 @@ export default function Layout({ children }) {
       router.push(`/chat/${data.id}`);
       utils.chat.listSessions.invalidate();
     },
+    onError: (e) => {
+      toast(`Failed to create session`);
+    },
   });
   const deleteSession = trpc.chat.deleteSession.useMutation({
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      console.log(variables);
+      console.log(sessionId);
+      toast(`Session ${variables.title} has been deleted`);
       utils.chat.listSessions.invalidate();
+      if (variables.id === sessionId) router.push("/chat");
     },
   });
 
-  const handleCreateChat = () => {
-    if (newChatTitle.trim()) {
-      createSession.mutate({ title: newChatTitle.trim() });
-      setNewChatTitle("");
+  const handleCreateChat = async () => {
+    console.log(sessionId, typeof sessionId);
+    if (!sessionId) {
+      if (newChatTitle.trim()) {
+        createSession.mutate({ title: newChatTitle.trim() });
+        setNewChatTitle("");
+      }
+    } else {
+      if (message.trim() && !sendMessage.isPending) {
+        setMessage("");
+        await sendMessage.mutateAsync({
+          sessionId,
+          message: message.trim(),
+        });
+      }
     }
   };
 
@@ -61,7 +85,9 @@ export default function Layout({ children }) {
               New Chat
             </Button>
           </div>
-          {sessions?.length === 0 ? (
+          {!sessions ? (
+            <p>Can't load sessions</p>
+          ) : sessions?.length === 0 ? (
             <p className="text-muted-foreground">
               No chat sessions yet. Start a new one!
             </p>
@@ -70,7 +96,7 @@ export default function Layout({ children }) {
               {sessions?.map((session) => (
                 <div
                   key={session.id}
-                  className={`${session.id === sessionId && 'bg-[#333333]'} flex items-center justify-between px-2 pr-0 rounded-lg hover:bg-[#333333]`}
+                  className={`${session.id === sessionId && "bg-[#333333]"} flex items-center justify-between px-2 pr-0 rounded-lg hover:bg-[#333333]`}
                 >
                   <Link
                     href={`/chat/${session.id}`}
@@ -81,7 +107,9 @@ export default function Layout({ children }) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => deleteSession.mutate({ id: session.id })}
+                    onClick={() =>
+                      deleteSession.mutate({ id: session.id, title: session.title })
+                    }
                     disabled={deleteSession.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -92,14 +120,17 @@ export default function Layout({ children }) {
           )}
         </aside>
 
-        <div className="p-5 grow max-w-[700px] mx-auto self-end">
+        <div className="p-5 grow max-w-[1000px] mx-auto self-end">
           <div>{children}</div>
           <div className="flex gap-2">
             <Input
               className="h-[50px] relative"
               placeholder={sessionId ? "Message... " : "Start a new chat"}
-              value={newChatTitle}
-              onChange={(e) => setNewChatTitle(e.target.value)}
+              value={sessionId ? message : newChatTitle}
+              onChange={(e) => {
+                if (!sessionId) setNewChatTitle(e.target.value);
+                else setMessage(e.target.value);
+              }}
               onKeyPress={(e) => e.key === "Enter" && handleCreateChat()}
             />
             <Button

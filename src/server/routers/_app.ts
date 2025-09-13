@@ -3,13 +3,12 @@ import { publicProcedure, router } from "../trpc";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/db/index"; // Your database connection
 import { chatSessions, messages } from "@/db/schema"; // Your schema
+import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => ({
-      greeting: `hello ${input.text}`,
-    })),
+  hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => ({
+    greeting: `hello ${input.text}`,
+  })),
 
   // Chat routes
   chat: router({
@@ -28,16 +27,9 @@ export const appRouter = router({
           .select()
           .from(chatSessions)
           .where(
-            and(
-              eq(chatSessions.id, input.id),
-              eq(chatSessions.userId, ctx.user.id)
-            )
+            and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
           )
           .limit(1);
-
-        if (!session) {
-          throw new Error("Session not found");
-        }
 
         const sessionMessages = await db
           .select()
@@ -71,10 +63,7 @@ export const appRouter = router({
         await db
           .delete(chatSessions)
           .where(
-            and(
-              eq(chatSessions.id, input.id),
-              eq(chatSessions.userId, ctx.user.id)
-            )
+            and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
           );
         return { success: true };
       }),
@@ -84,7 +73,7 @@ export const appRouter = router({
         z.object({
           sessionId: z.string(),
           message: z.string(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         // Save user message
