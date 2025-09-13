@@ -46,6 +46,7 @@ export const appRouter = router({
     createSession: publicProcedure
       .input(z.object({ title: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
+        console.log(ctx)
         const [session] = await db
           .insert(chatSessions)
           .values({
