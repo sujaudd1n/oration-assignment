@@ -120,9 +120,9 @@ export default function Layout({ children }) {
           )}
         </aside>
 
-        <div className="p-5 grow max-w-[1000px] mx-auto self-end">
+        <div className="p-5 pt-0 grow max-w-[1000px] mx-auto flex flex-col">
           <div>{children}</div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-auto">
             <Input
               className="h-[50px] relative"
               placeholder={sessionId ? "Message... " : "Start a new chat"}

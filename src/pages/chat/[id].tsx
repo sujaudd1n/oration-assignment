@@ -68,10 +68,12 @@ export default function ChatSessionPage() {
 
   return (
     <Layout>
-      <div className="flex flex-col">
-        <h1 className="text-xl font-semibold">{session.title}</h1>
+      <div className="flex flex-col relative overflow-auto max-h-[90dvh]">
+        <h1 className="bg-background/80 backdrop-blur-sm p-2 text-xl font-semibold sticky top-0 left-0 right-0 text-center">
+          {session.title}
+        </h1>
 
-        <main className="flex-1 p-4 max-w-4xl mx-auto w-full flex flex-col">
+        <main className="flex-1 px-3 mx-auto w-full flex flex-col">
           <div className="space-y-4">
             {session.messages.map((msg) => (
               <div
@@ -85,7 +87,14 @@ export default function ChatSessionPage() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <div className="whitespace-pre-wrap">
+                    <p>{msg.content}</p>
+                    <p
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} text-xs mt-3`}
+                    >
+                      {new Date(msg.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -97,23 +106,6 @@ export default function ChatSessionPage() {
               </div>
             )}
             <div ref={messagesEndRef} />
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <Input
-              placeholder="Type your message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              disabled={sendMessage.isPending}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!message.trim() || sendMessage.isPending}
-              size="icon"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
           </div>
         </main>
       </div>
