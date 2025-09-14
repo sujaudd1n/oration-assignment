@@ -141,7 +141,7 @@ export default function Layout({ children }: LayoutProps) {
               {sessions.map((session) => (
                 <div
                   key={session.id}
-                  className={`${session.id === sessionId && "bg-[#333333]"} flex items-center justify-between px-2 pr-0 rounded-lg hover:bg-[#333333]`}
+                  className={`${session.id === sessionId && "bg-ring"} flex items-center justify-between px-2 pr-0 rounded-lg hover:bg-ring`}
                 >
                   <Link
                     href={`/chat/${session.id}`}

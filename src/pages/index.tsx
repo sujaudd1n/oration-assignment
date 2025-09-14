@@ -15,5 +15,9 @@ export default function IndexPage() {
     f();
   });
 
-  return <div>Loading...</div>;
+  return (
+    <div className="text-2xl h-[100dvh] flex justify-center items-center">
+      Loading...
+    </div>
+  );
 }
