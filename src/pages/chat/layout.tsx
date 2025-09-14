@@ -199,7 +199,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex gap-2 mt-auto">
             <Input
               className="h-[50px] relative"
-              placeholder={sessionId ? "Message... " : "Start a new chat"}
+              placeholder={sessionId ? "Send message in this session... " : "Start a new chat session"}
               value={sessionId ? message : newChatTitle}
               onChange={(e) => {
                 if (!sessionId) setNewChatTitle(e.target.value);
