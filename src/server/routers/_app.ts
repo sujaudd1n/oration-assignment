@@ -1,74 +1,164 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 import { eq, and, desc } from "drizzle-orm";
-import { db } from "@/db/index"; // Your database connection
-import { chatSessions, messages } from "@/db/schema"; // Your schema
+import { db } from "@/db/index";
+import { chatSessions, messages } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { GoogleGenAI } from "@google/genai";
+
 const ai = new GoogleGenAI({});
+
+async function getCompletion(input: string): Promise<string | undefined> {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: input,
+      config: {
+        systemInstruction:
+          'You are "CareerGuide," a supportive, empathetic, and highly knowledgeable AI career counselor.',
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
+      },
+    });
+    return response.text;
+  } catch (error) {
+    console.error("AI completion error:", error);
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to generate AI response",
+    });
+  }
+}
 
 export const appRouter = router({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => ({
     greeting: `hello ${input.text}`,
   })),
 
-  // Chat routes
   chat: router({
     listSessions: publicProcedure.query(async ({ ctx }) => {
-      return await db
-        .select()
-        .from(chatSessions)
-        .where(eq(chatSessions.userId, ctx.user.id))
-        .orderBy(desc(chatSessions.updatedAt));
+      if (!ctx.user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
+        });
+      }
+
+      try {
+        return await db
+          .select()
+          .from(chatSessions)
+          .where(eq(chatSessions.userId, ctx.user.id))
+          .orderBy(desc(chatSessions.updatedAt));
+      } catch (error) {
+        console.error("Error listing sessions:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch chat sessions",
+        });
+      }
     }),
 
     getSession: publicProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ ctx, input }) => {
-        const [session] = await db
-          .select()
-          .from(chatSessions)
-          .where(
-            and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
-          )
-          .limit(1);
+        if (!ctx.user.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not authenticated",
+          });
+        }
 
-        const sessionMessages = await db
-          .select()
-          .from(messages)
-          .where(eq(messages.sessionId, input.id))
-          .orderBy(messages.createdAt);
+        try {
+          const [session] = await db
+            .select()
+            .from(chatSessions)
+            .where(
+              and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
+            )
+            .limit(1);
 
-        return {
-          ...session,
-          messages: sessionMessages,
-        };
+          if (!session) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Chat session not found",
+            });
+          }
+
+          const sessionMessages = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.sessionId, input.id))
+            .orderBy(messages.createdAt);
+
+          return {
+            ...session,
+            messages: sessionMessages,
+          };
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          console.error("Error getting session:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch chat session",
+          });
+        }
       }),
 
     createSession: publicProcedure
       .input(z.object({ title: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
-        console.log(ctx);
-        const [session] = await db
-          .insert(chatSessions)
-          .values({
-            userId: ctx.user.id,
-            title: input.title || "New Chat",
-          })
-          .returning();
+        if (!ctx.user.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not authenticated",
+          });
+        }
 
-        return session;
+        try {
+          const [session] = await db
+            .insert(chatSessions)
+            .values({
+              userId: ctx.user.id,
+              title: input.title || "New Chat",
+            })
+            .returning();
+
+          return session;
+        } catch (error) {
+          console.error("Error creating session:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create chat session",
+          });
+        }
       }),
 
     deleteSession: publicProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        await db
-          .delete(chatSessions)
-          .where(
-            and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
-          );
-        return { success: true };
+        if (!ctx.user.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User not authenticated",
+          });
+        }
+
+        try {
+          await db
+            .delete(chatSessions)
+            .where(
+              and(eq(chatSessions.id, input.id), eq(chatSessions.userId, ctx.user.id)),
+            );
+          return { success: true };
+        } catch (error) {
+          console.error("Error deleting session:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to delete chat session",
+          });
+        }
       }),
 
     sendMessage: publicProcedure
@@ -79,56 +169,46 @@ export const appRouter = router({
         }),
       )
       .mutation(async ({ input }) => {
-        // Save user message
-        const [userMessage] = await db
-          .insert(messages)
-          .values({
-            sessionId: input.sessionId,
-            content: input.message,
-            role: "user",
-          })
-          .returning();
+        try {
+          const [userMessage] = await db
+            .insert(messages)
+            .values({
+              sessionId: input.sessionId,
+              content: input.message,
+              role: "user",
+            })
+            .returning();
 
-        // Generate AI response (simplified - replace with your actual AI integration)
-        const fullResponse = await getCompletion(input.message);
+          const fullResponse = await getCompletion(input.message);
 
-        // Save AI response
-        const [aiMessage] = await db
-          .insert(messages)
-          .values({
-            sessionId: input.sessionId,
-            content: fullResponse,
-            role: "assistant",
-          })
-          .returning();
+          const [aiMessage] = await db
+            .insert(messages)
+            .values({
+              sessionId: input.sessionId ?? "",
+              content: fullResponse ?? "",
+              role: "assistant",
+            })
+            .returning();
 
-        // Update session timestamp
-        await db
-          .update(chatSessions)
-          .set({ updatedAt: new Date() })
-          .where(eq(chatSessions.id, input.sessionId));
+          await db
+            .update(chatSessions)
+            .set({ updatedAt: new Date() })
+            .where(eq(chatSessions.id, input.sessionId));
 
-        return {
-          userMessage,
-          aiMessage,
-        };
+          return {
+            userMessage,
+            aiMessage,
+          };
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          console.error("Error sending message:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to send message",
+          });
+        }
       }),
   }),
 });
-
-async function getCompletion(input: str) {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: input,
-    config: {
-      systemInstruction:
-        'You are "CareerGuide," a supportive, empathetic, and highly knowledgeable AI career counselor. Your primary goal is to empower users to explore career paths, understand their skills, and make informed decisions about their professional future. You are not a replacement for a human counselor but a first step and ongoing guide. You must be encouraging  and operate within strict ethical guidelines.',
-      thinkingConfig: {
-        thinkingBudget: 0, // Disables thinking
-      },
-    },
-  });
-  return response.text;
-}
 
 export type AppRouter = typeof appRouter;

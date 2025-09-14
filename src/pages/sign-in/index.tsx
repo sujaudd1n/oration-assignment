@@ -1,8 +1,10 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; // Assuming you have a Button component
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // If using Next.js App Router
+import { useRouter } from "next/router"; // If using Next.js App Router
 
 export default function SignIn() {
   const [userData, setUserData] = useState({
@@ -24,7 +26,7 @@ export default function SignIn() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { email, password, name, image } = userData;
+    const { email, password } = userData;
 
     const { data, error } = await authClient.signIn.email(
       {

@@ -1,24 +1,25 @@
+"use client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; // Assuming you have a Button component
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // If using Next.js App Router
+import { useRouter } from "next/router"; // If using Next.js App Router
 
 export default function SignUp() {
   const [userData, setUserData] = useState({
     email: "",
     password: "",
     name: "",
-    image: ""
+    image: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter(); // For navigation
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -57,7 +58,7 @@ export default function SignUp() {
     <div className="flex min-h-screen items-center justify-center">
       <form onSubmit={handleSignIn} className="space-y-4 w-full max-w-md p-6">
         <h1 className="text-2xl font-bold text-center">Sign Up</h1>
-        
+
         <Input
           name="name"
           placeholder="Name"
@@ -65,7 +66,7 @@ export default function SignUp() {
           onChange={handleChange}
           required
         />
-        
+
         <Input
           name="email"
           type="email"
@@ -74,7 +75,7 @@ export default function SignUp() {
           onChange={handleChange}
           required
         />
-        
+
         <Input
           name="password"
           type="password"
@@ -84,7 +85,7 @@ export default function SignUp() {
           required
           minLength={8}
         />
-        
+
         <Input
           name="image"
           type="url"
@@ -92,12 +93,8 @@ export default function SignUp() {
           value={userData.image}
           onChange={handleChange}
         />
-        
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading}
-        >
+
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Signing up..." : "Sign Up"}
         </Button>
       </form>

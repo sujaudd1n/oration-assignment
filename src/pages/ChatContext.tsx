@@ -1,12 +1,15 @@
-// contexts/ChatContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
 import { trpc } from "@/utils/trpc";
 
-const ChatContext = createContext<{
+interface ChatContextType {
   sendMessage: ReturnType<typeof trpc.chat.sendMessage.useMutation>;
-} | null>(null);
+  message: string;
+  setMessage: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const ChatContext = createContext<ChatContextType | null>(null);
 
 export function useChat() {
   const context = useContext(ChatContext);
@@ -16,7 +19,7 @@ export function useChat() {
   return context;
 }
 
-export function ChatProvider({ children }: { children: React.ReactNode }) {
+export default function ChatProvider({ children }: { children: React.ReactNode }) {
   const utils = trpc.useUtils();
   const sendMessage = trpc.chat.sendMessage.useMutation({
     onSuccess(_, variable) {

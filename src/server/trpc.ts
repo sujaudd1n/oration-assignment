@@ -1,14 +1,20 @@
 import { initTRPC } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { auth } from "@/lib/auth"; // path to your Better Auth server instance
+import { auth } from "@/lib/auth";
 
 export const createContext = async (opts: CreateNextContextOptions) => {
-  // export const createContext = async (opts: { headers: Headers }) => {
-  const session = await auth.api.getSession({
-    headers: opts.req.headers, // you need to pass the headers object.
+  const headers = new Headers();
+  Object.entries(opts.req.headers).forEach(([key, value]) => {
+    if (value) {
+      const headerValue = Array.isArray(value) ? value.join(', ') : value;
+      headers.set(key, headerValue);
+    }
   });
-  console.log("session = ", session);
-  // const session = "hello";
+
+  const session = await auth.api.getSession({
+    headers,
+  });
+
   return {
     session,
     user: {
@@ -16,7 +22,9 @@ export const createContext = async (opts: CreateNextContextOptions) => {
     },
   };
 };
+
 export type Context = Awaited<ReturnType<typeof createContext>>;
+
 const t = initTRPC.context<Context>().create();
 
 t.procedure.use((opts) => {
