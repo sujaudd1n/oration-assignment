@@ -9,6 +9,7 @@ import { Send, ArrowLeft, Loader2 } from "lucide-react";
 import Layout from "./layout";
 import { useParams } from "next/navigation";
 import { useChat } from "../ChatContext";
+import { marked } from "marked";
 
 interface ChatSessionPageProps {
   sendMessage: ReturnType<typeof trpc.chat.sendMessage.useMutation>;
@@ -88,7 +89,9 @@ export default function ChatSessionPage() {
                   }`}
                 >
                   <div className="whitespace-pre-wrap">
-                    <p>{msg.content}</p>
+                    <p
+                      dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}
+                    ></p>
                     <p
                       className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} text-xs mt-3`}
                     >

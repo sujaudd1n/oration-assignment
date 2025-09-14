@@ -85,7 +85,7 @@ export default function Layout({ children }) {
       <div className="flex h-[100%]">
         {/*<aside className="w-[300px] p-5 bg-secondary flex flex-col">*/}
         <Button
-          className="absolute top-2 left-2"
+          className="fixed top-2 left-2 z-10"
           size="icon"
           onClick={() => {
             asideRef.current.style.width = "300px";

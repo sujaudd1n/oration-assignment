@@ -4,6 +4,8 @@ import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/db/index"; // Your database connection
 import { chatSessions, messages } from "@/db/schema"; // Your schema
 import { TRPCError } from "@trpc/server";
+import { GoogleGenAI } from "@google/genai";
+const ai = new GoogleGenAI({});
 
 export const appRouter = router({
   hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => ({
@@ -46,7 +48,7 @@ export const appRouter = router({
     createSession: publicProcedure
       .input(z.object({ title: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
-        console.log(ctx)
+        console.log(ctx);
         const [session] = await db
           .insert(chatSessions)
           .values({
@@ -88,7 +90,7 @@ export const appRouter = router({
           .returning();
 
         // Generate AI response (simplified - replace with your actual AI integration)
-        const fullResponse = `I received your message: "${input.message}". This is a simulated response.`;
+        const fullResponse = await getCompletion(input.message);
 
         // Save AI response
         const [aiMessage] = await db
@@ -113,5 +115,20 @@ export const appRouter = router({
       }),
   }),
 });
+
+async function getCompletion(input: str) {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: input,
+    config: {
+      systemInstruction:
+        'You are "CareerGuide," a supportive, empathetic, and highly knowledgeable AI career counselor. Your primary goal is to empower users to explore career paths, understand their skills, and make informed decisions about their professional future. You are not a replacement for a human counselor but a first step and ongoing guide. You must be encouraging  and operate within strict ethical guidelines.',
+      thinkingConfig: {
+        thinkingBudget: 0, // Disables thinking
+      },
+    },
+  });
+  return response.text;
+}
 
 export type AppRouter = typeof appRouter;

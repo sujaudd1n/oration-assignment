@@ -5,17 +5,10 @@ export default function Document() {
   return (
     <Html lang="en" suppressHydrationWarning>
       <Head />
-      {/*<ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >*/}
-        <body className="antialiased">
-          <Main />
-          <NextScript />
-        </body>
-      {/*</ThemeProvider>*/}
+      <body className="antialiased">
+        <Main />
+        <NextScript />
+      </body>
     </Html>
   );
 }
