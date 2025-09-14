@@ -24,5 +24,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ---
 
-At first, please create an account to chat. After that you can create chat session
+**Submission Checklist**
+
+- Next.js application created with TypeScriptPublic GitHub repository with clean commit history ✅
+- Working chat functionality with AI integration ✅
+- Database integration with proper schema ✅
+- tRPC and TanStack Query implementation ✅
+- Chat history and session management ✅
+- Vercel deployment completed ✅
+- README.md with setup instructions ✅
+- Make sure to test your deployed application thoroughly before submitting! ✅
+
+At first, please create an account. After that you can create chat session
 and send messages.
