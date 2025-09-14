@@ -81,7 +81,7 @@ export default function SignIn() {
         </Button>
       </form>
       <p>
-        Don't have an account? <Link className="text-sky-400" href="/sign-up">Sign Up</Link>
+        Dont have an account? <Link className="text-sky-400" href="/sign-up">Sign Up</Link>
       </p>
     </div>
   );
