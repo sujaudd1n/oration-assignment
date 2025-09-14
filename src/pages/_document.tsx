@@ -1,13 +1,21 @@
 import { Html, Head, Main, NextScript } from "next/document";
+import { ThemeProvider } from "next-themes";
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" suppressHydrationWarning>
       <Head />
-      <body className="dark antialiased">
-        <Main />
-        <NextScript />
-      </body>
+      {/*<ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >*/}
+        <body className="antialiased">
+          <Main />
+          <NextScript />
+        </body>
+      {/*</ThemeProvider>*/}
     </Html>
   );
 }

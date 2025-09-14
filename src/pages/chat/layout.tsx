@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { trpc } from "@/utils/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -13,6 +13,7 @@ import { PanelLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useChat } from "../ChatContext";
 import { authClient } from "@/lib/auth-client"; // import the auth client
+import { ModeToggle } from "@/components/ModeToggle";
 
 export default function Layout({ children }) {
   const [newChatTitle, setNewChatTitle] = useState("");
@@ -21,6 +22,7 @@ export default function Layout({ children }) {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.id as string;
+  const asideRef = useRef(null);
 
   const {
     data: authSession,
@@ -81,11 +83,34 @@ export default function Layout({ children }) {
   return (
     <div className="h-[100dvh] mx-auto">
       <div className="flex h-[100%]">
-        <aside className="w-[300px] p-5 bg-secondary flex flex-col">
+        {/*<aside className="w-[300px] p-5 bg-secondary flex flex-col">*/}
+        <Button
+          className="absolute top-2 left-2"
+          size="icon"
+          onClick={() => {
+            asideRef.current.style.width = "300px";
+            asideRef.current.style.padding = "20px";
+            asideRef.current.style.translate = "0px";
+          }}
+        >
+          <PanelLeft />
+        </Button>
+        <aside
+          ref={asideRef}
+          // className="w-[300px] p-5 flex flex-col absolute top-0 bottom-0 left-[-300px] z-10 bg-secondary/30 backdrop-blur-md lg:left-0 transition-all"
+          className="absolute top-0 bottom-0 left-0 md:relative w-0 p-0 overflow-hidden flex flex-col translate-x-[-300px] z-10 bg-secondary/30 backdrop-blur-md lg:translate-x-0 lg:w-[300px] lg:p-5 transition-all"
+        >
           <div className="h-[100px]">
             <div className="flex justify-between">
               <h1 className="text-xl font-bold">Career Counseling</h1>
-              <Button size="icon">
+              <Button
+                size="icon"
+                onClick={() => {
+                  asideRef.current.style.width = "0px";
+                  asideRef.current.style.padding = "0px";
+                  asideRef.current.style.translateX = "-300px";
+                }}
+              >
                 <PanelLeft />
               </Button>
             </div>
@@ -129,10 +154,23 @@ export default function Layout({ children }) {
           <div className="mt-auto w-full">
             {authIsPending && <p>Loading...</p>}
             {authSession && (
-              <Button onClick={async () => await authClient.signOut()}>Logout</Button>
+              <>
+                <p className="py-2">{authSession.user.name}</p>
+                <div className="flex flex-nowrap gap-2">
+                  <ModeToggle />
+                  <Button
+                    className="grow"
+                    onClick={async () => await authClient.signOut()}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </>
             )}
             {!authSession && (
-              <Button onClick={() => router.push("/sign-in")}>Sign In</Button>
+              <Button className="w-full" onClick={() => router.push("/sign-in")}>
+                Sign In
+              </Button>
             )}
           </div>
         </aside>
