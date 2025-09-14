@@ -49,7 +49,7 @@ export default function ChatSessionPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-[80dvh] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </Layout>
@@ -59,7 +59,7 @@ export default function ChatSessionPage() {
   if (!session || !("id" in session)) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-[80dvh] flex items-center justify-center">
           <p>Chat session not found.</p>
         </div>
       </Layout>

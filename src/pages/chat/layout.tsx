@@ -12,14 +12,22 @@ import { useParams } from "next/navigation";
 import { PanelLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useChat } from "../ChatContext";
+import { authClient } from "@/lib/auth-client"; // import the auth client
 
 export default function Layout({ children }) {
   const [newChatTitle, setNewChatTitle] = useState("");
-  const {sendMessage} = useChat()
+  const { sendMessage } = useChat();
   const utils = trpc.useUtils();
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.id as string;
+
+  const {
+    data: authSession,
+    authIsPending, //loading state
+    authError, //error object
+    authRefetch, //refetch the session
+  } = authClient.useSession();
 
   const { message, setMessage } = useChat();
   console.log(sendMessage);
@@ -73,7 +81,7 @@ export default function Layout({ children }) {
   return (
     <div className="h-[100dvh] mx-auto">
       <div className="flex h-[100%]">
-        <aside className="w-[300px] p-5 bg-secondary">
+        <aside className="w-[300px] p-5 bg-secondary flex flex-col">
           <div className="h-[100px]">
             <div className="flex justify-between">
               <h1 className="text-xl font-bold">Career Counseling</h1>
@@ -92,7 +100,7 @@ export default function Layout({ children }) {
               No chat sessions yet. Start a new one!
             </p>
           ) : (
-            <div className="flex flex-col gap-2 overflow-auto h-[calc(100dvh-100px-40px)]">
+            <div className="flex flex-col gap-2 overflow-auto h-[calc(100dvh-150px-40px)]">
               {sessions?.map((session) => (
                 <div
                   key={session.id}
@@ -118,6 +126,15 @@ export default function Layout({ children }) {
               ))}
             </div>
           )}
+          <div className="mt-auto w-full">
+            {authIsPending && <p>Loading...</p>}
+            {authSession && (
+              <Button onClick={async () => await authClient.signOut()}>Logout</Button>
+            )}
+            {!authSession && (
+              <Button onClick={() => router.push("/sign-in")}>Sign In</Button>
+            )}
+          </div>
         </aside>
 
         <div className="p-5 pt-0 grow max-w-[1000px] mx-auto flex flex-col">
