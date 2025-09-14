@@ -29,7 +29,8 @@ export default function SignUp() {
 
     const { email, password, name, image } = userData;
 
-    const { data, error } = await authClient.signUp.email(
+    // const { data, error } = await authClient.signUp.email(
+    await authClient.signUp.email(
       {
         email,
         password,
@@ -38,12 +39,11 @@ export default function SignUp() {
         callbackURL: "/chat",
       },
       {
-        onRequest: (ctx) => {
+        onRequest: () => {
           setIsLoading(true);
         },
-        onSuccess: (ctx) => {
+        onSuccess: () => {
           setIsLoading(false);
-          // Redirect to dashboard or verification page
           router.push("/chat");
         },
         onError: (ctx) => {

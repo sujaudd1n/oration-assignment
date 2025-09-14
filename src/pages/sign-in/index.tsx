@@ -1,10 +1,10 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button"; // Assuming you have a Button component
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
-import { useRouter } from "next/router"; // If using Next.js App Router
+import { useRouter } from "next/router";
 import Link from "next/link";
 
 export default function SignIn() {
@@ -29,17 +29,18 @@ export default function SignIn() {
 
     const { email, password } = userData;
 
-    const { data, error } = await authClient.signIn.email(
+    // const { data, error } = await authClient.signIn.email(
+    await authClient.signIn.email(
       {
         email,
         password,
         callbackURL: "/chat",
       },
       {
-        onRequest: (ctx) => {
+        onRequest: () => {
           setIsLoading(true);
         },
-        onSuccess: (ctx) => {
+        onSuccess: () => {
           setIsLoading(false);
           // Redirect to dashboard or verification page
           router.push("/chat");
@@ -81,7 +82,10 @@ export default function SignIn() {
         </Button>
       </form>
       <p>
-        Dont have an account? <Link className="text-sky-400" href="/sign-up">Sign Up</Link>
+        Dont have an account?{" "}
+        <Link className="text-sky-400" href="/sign-up">
+          Sign Up
+        </Link>
       </p>
     </div>
   );

@@ -27,12 +27,7 @@ export default function Layout({ children }: LayoutProps) {
   const sessionId = params?.id as string;
   const asideRef = useRef<HTMLElement>(null);
 
-  const {
-    data: authSession,
-    isPending: authIsPending,
-    error: authError,
-    refetch: authRefetch,
-  } = authClient.useSession();
+  const { data: authSession, isPending: authIsPending } = authClient.useSession();
 
   const { message, setMessage } = useChat();
 
@@ -81,7 +76,7 @@ export default function Layout({ children }: LayoutProps) {
           });
         } catch (error) {
           console.error("Failed to send message:", error);
-          toast.error("Failed to send message");
+          toast.error("Failed to send message:" + error);
         }
       }
     }

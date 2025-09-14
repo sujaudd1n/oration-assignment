@@ -32,10 +32,6 @@ async function getCompletion(input: string): Promise<string | undefined> {
 }
 
 export const appRouter = router({
-  hello: publicProcedure.input(z.object({ text: z.string() })).query(({ input }) => ({
-    greeting: `hello ${input.text}`,
-  })),
-
   chat: router({
     listSessions: publicProcedure.query(async ({ ctx }) => {
       if (!ctx.user.id) {
