@@ -1,18 +1,20 @@
 "use client";
 import { trpc } from "../utils/trpc";
 import { useRouter } from "next/router";
+import { authClient } from "@/lib/auth-client";
+import { useEffect } from "react";
 
 export default function IndexPage() {
   const router = useRouter();
-  // router.push("/sign-in");
 
-  const hello = trpc.hello.useQuery({ text: "client" });
-  if (!hello.data) {
-    return <div>Loading...</div>;
-  }
-  return (
-    <div>
-      <p>{hello.data.greeting}</p>
-    </div>
-  );
+  useEffect(() => {
+    async function f() {
+      const { data: session, error } = await authClient.getSession();
+      if (session) router.push("/chat");
+      else router.push("/sign-in");
+    }
+    f();
+  });
+
+  return <div>Loading...</div>;
 }

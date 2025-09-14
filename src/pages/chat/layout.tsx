@@ -4,8 +4,7 @@ import React, { useRef, useState } from "react";
 import { trpc } from "@/utils/trpc";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Plus, MessageSquare, Trash2, Send } from "lucide-react";
+import { Trash2, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useParams } from "next/navigation";
@@ -32,15 +31,8 @@ export default function Layout({ children }: LayoutProps) {
     data: authSession,
     isPending: authIsPending,
     error: authError,
-    refetch: authRefetch, // Use the correct property name 'refetch'
+    refetch: authRefetch,
   } = authClient.useSession();
-
-  // const {
-  //   data: authSession,
-  //   authIsPending,
-  //   authError,
-  //   authRefetch,
-  // } = authClient.useSession();
 
   const { message, setMessage } = useChat();
 
@@ -187,6 +179,7 @@ export default function Layout({ children }: LayoutProps) {
                     onClick={async () => {
                       try {
                         await authClient.signOut();
+                        router.push("/sign-in");
                       } catch (error) {
                         console.error("Failed to sign out:", error);
                         toast.error("Failed to sign out");

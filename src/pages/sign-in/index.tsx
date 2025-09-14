@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"; // Assuming you have a Button c
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/router"; // If using Next.js App Router
+import Link from "next/link";
 
 export default function SignIn() {
   const [userData, setUserData] = useState({
@@ -52,9 +53,9 @@ export default function SignIn() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex flex-col min-h-screen items-center justify-center">
       <form onSubmit={handleSignIn} className="space-y-4 w-full max-w-md p-6">
-        <h1 className="text-2xl font-bold text-center">Sign Up</h1>
+        <h1 className="text-2xl font-bold text-center">Sign In</h1>
 
         <Input
           name="email"
@@ -79,6 +80,9 @@ export default function SignIn() {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
       </form>
+      <p>
+        Don't have an account? <Link className="text-sky-400" href="/sign-up">Sign Up</Link>
+      </p>
     </div>
   );
 }
